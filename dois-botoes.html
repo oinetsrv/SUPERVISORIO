@@ -1,0 +1,121 @@
+
+ <!DOCTYPE html>
+  <html>
+    <head>
+   <!--  <script type="text/javascript" src="js/jquery-3.1.1.min.js"></script> -->
+     <script type="text/javascript" src="https://code.jquery.com/jquery-3.1.1.js"></script>
+      <META HTTP-EQUIV="Pragma" CONTENT="no-cache">     
+    </head>
+
+    <body>
+<p>
+        <h4>Botões</h4>
+
+        <br/>
+        Botão 2:
+        <div class="btn-group">
+          <button type="button" class="btn btn-default botaoEnvia" id="004000000">Liga</button>
+          <button type="button" class="btn btn-default botaoEnvia" id="003000000">Desliga</button>
+        </div>
+        <span id="resultLED_TESTE"></span>
+      </p>
+ 
+
+      <!-- executa script em java para enviar comando para o arduino e receber o resultado
+      do status atualizado depois de executado -->
+      <script type="text/javascript">
+var url = "http://192.168.1.177:80"
+var data; 
+     $(document).ready(function(){
+
+$('.botaoEnvia').click(function(){
+        var comando = $(this).attr('id'); 
+ 
+        // AQUI ESTOU TESTANDO SE A IN
+  // INFORMAÇÃO 004 VAI PARA O ARDUINO COM A FUNÇÃO ENVIADADOS
+  
+        enviaDados(comando);
+    });
+
+
+function enviaDados(dado){    
+      $.ajax({
+      url: url,
+
+        data: { 'acao': dado},
+        dataType: 'jsonp', // PERMITE FAZER COMUNICAÇAO DE UM SEVIDOR PARA O OUTRO
+        crossDomain: true,
+        jsonp: false,
+        jsonpCallback: 'dados', // RETORNO DO ARDUINO VARIAVEL DADOS
+
+        success: function(data,status,xhr) {
+        // posso ler dados e retoranar na pagina para avisar se a luz ta ligada ou desligada.
+        
+        console.log(data.LED_TESTE);
+
+        $('#resultLED_TESTE').text(statusReturn(data.LED_TESTE));
+        }
+      });
+        return false;
+    }
+
+
+function statusReturn (valor) {
+  // AQUI FAZ O TRATAMENTO DO RESULTADO RESPONDIDO PELO ARDUINO
+      if(valor == 1) {
+        return "Ligada";
+      }
+      else if(valor == 0) {
+        return "Desligada";
+      }
+       else { return "Desconhecido";}
+    }
+
+
+function fazerRequisicao(){
+  // ESSE PEDAÇO NAO USO
+    $('#status').removeClass('label-success').addClass('label-warning');
+    $('#status').text("Enviando Requisição...");
+    // FIM PEDAÇO QUE NAO USO
+      $.ajax({
+        url: url,
+        data: { '': ''}, // usaremos em proximas versões
+        dataType: 'jsonp', // IMPORTANTE
+        crossDomain: true, // IMPORTANTE
+        jsonp: false,
+        jsonpCallback: 'dados', // IMPORTANTE
+        success: function(data,status,xhr) {
+        $('#status').removeClass('label-warning').addClass('label-success')
+        $('#status').text("Requisição Recebida!");
+     
+       
+        $('#resultLUZ2').text(statusReturn(data.LUZ2));
+         
+         
+        console.log(data);
+        }
+      });
+        return false;
+    }
+
+
+setInterval(fazerRequisicao, 10000);
+
+
+ 
+      });
+
+
+
+
+
+
+      </script>
+      
+
+      
+
+
+     
+    </body>
+  </html>

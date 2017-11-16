@@ -1,0 +1,311 @@
+
+
+<!DOCTYPE html>
+<html>
+   <head>
+      <!--Import Google Icon Font-->
+      <!--  <link href="http://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"> -->
+      <!-- baixei a bagaça toda -->
+      <!--Import jQuery before materialize.js Baixar o jquery -->
+      <!-- <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script> -->
+      <script type="text/javascript" src="js/jquery-3.1.1.min.js"></script>
+
+      <script type="text/javascript" src="js/materialize.min.js"></script>
+      <script type="text/javascript" src="js/front/botoes.js"></script>
+      <script type="text/javascript" src="js/alterarStatus.js"></script>
+      <script type="text/javascript" src="js/envioArduino.js"></script>
+      <script type="text/javascript" src="js/lerPeso.js"></script>
+      <link type="text/css" rel="stylesheet" href="material-design-icons-master/material-design-icons-master/iconfont/material-icons.css"
+      <!--Import materialize.css-->
+      <link type="text/css" rel="stylesheet" href="css/materialize.min.css"  media="screen,projection"/>
+      <!--Let browser know website is optimized for mobile-->
+      <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+      <meta charset="utf-8">
+      <title>Sistema Supervisório - Versão 1.128</title>
+   </head>
+   <body>
+     
+      <script type="text/javascript">
+      $(document).ready(function() {
+
+        $('#botao_semafaro_externo_A').click(function(event) {
+
+$('#botao_semafaro_externo_A').prop("disabled", true);
+$('#botao_semafaro_externo_B').prop("disabled", true);
+$('#botao_controle_cancelas_abrir').prop("disabled", true);
+
+         /*
+quando o botao for precionado o sistema pergunta
+para a CONTROLADOR como está a condiçao dos acessorios.
+*PERGUNTA FAZENDO O ENVIO DE UM COMANDO SEM DATA.
+ baseado na resposta tem se as opçoes de controle qeu sao:
+  Mudar a cor dos  botoes da pagina de acordo com a condição do sistema fisico.
+os semaforos internos nao terá autonomia para mudança de estado via
+software.
+         */ 
+         $.ajax({ 
+        url: "http://192.168.25.177:80",
+        dataType: 'jsonp',
+        crossDomain: true,
+        jsonp: false,
+        jsonpCallback: 'dados',
+        success: function(data,status,xhr) {
+        // LOGICA SEMAFORO EXTERNO A
+        // SE VERDE EXTERNO ESTIVER LIGADO BOTAO FICA VERDE
+        if (data.VD_EXT_A === 1){
+            enviarComando('NOT_AB000');
+        } else if(data.VM_EXT_A === 1){
+            // SE VERMELHO EXTERNO LIGADO BOTAO FICA VERMELHO
+            enviarComando('OFF_AB000');
+        } else if(data.VD_EXT_A === 0){
+            if(data.VM_EXT_A === 0){
+               //se estiver desligado os dois semaforos entao
+            enviarComando('ENTRA_A00');
+       }    
+            }
+        }
+      });
+        });
+        // inicio logica semaforo externo B
+
+$('#botao_semafaro_externo_B').click(function(event) {
+
+$('#botao_semafaro_externo_A').prop("disabled", true);
+$('#botao_semafaro_externo_B').prop("disabled", true);
+$('#botao_controle_cancelas_abrir').prop("disabled", true);
+
+         $.ajax({      
+        url: "http://192.168.25.177:80",
+        dataType: 'jsonp',
+        crossDomain: true,
+        jsonp: false,
+        jsonpCallback: 'dados',
+        success: function(data,status,xhr) {
+        // LOGICA SEMAFORO EXTERNO B
+        // SE VERDE EXTERNO ESTIVER LIGADO BOTAO FICA VERDE
+        if (data.VD_EXT_B === 1){
+            enviarComando('NOT_AB000');
+        } else if(data.VM_EXT_B === 1){
+            // SE VERMELHO EXTERNO LIGADO BOTAO FICA VERMELHO
+            enviarComando('OFF_AB000');
+        } else if(data.VD_EXT_A === 0){
+            if(data.VM_EXT_A === 0){
+               //se estiver desligado os dois semaforos entao
+            enviarComando('ENTRA_B00');
+       }    
+            }    
+        }
+      });
+        });
+
+        // inicio logica cancelas
+
+$('#botao_controle_cancelas_abrir').click(function(event) {
+  
+$('#botao_semafaro_externo_A').prop("disabled", true);
+$('#botao_semafaro_externo_B').prop("disabled", true);
+$('#botao_controle_cancelas_abrir').prop("disabled", true);
+
+         $.ajax({      
+        url: "http://192.168.25.177:80",
+        dataType: 'jsonp',
+        crossDomain: true,
+        jsonp: false,
+        jsonpCallback: 'dados',
+        success: function(data,status,xhr) {
+      
+        if (data.CA_A === 1){ 
+                if(data.CA_B === 1){
+
+
+          enviarComando('FC_AB0000');
+        } 
+         }else if (data.CA_A === 0){ 
+                if(data.CA_B === 0){
+          enviarComando('AC_AB0000');
+              }    
+            }    
+        }
+      });
+        });
+
+// aqui faço a pagina atualizar sozinha
+function fazerRequisicao(){
+      $.ajax({
+        url: "http://192.168.25.177:80",
+
+        dataType: 'jsonp', // IMPORTANTE
+        crossDomain: true, // IMPORTANTE
+        jsonp: false,
+        jsonpCallback: 'dados', // IMPORTANTE
+        success: function(data,status,xhr) {
+alterarStatus(data);
+        console.log(data);
+        }
+      });
+        return false;
+    }
+
+
+setInterval(fazerRequisicao, 5000);
+
+
+
+      });
+
+  
+          
+      </script>
+
+
+
+      <!-- aqui está o menu lateral -->
+      <div class="row ">
+      <div class="col s12 m2 l3 ">
+         <!-- Note that "m4 l3" was added -->
+         <!-- Grey navigation panel
+            This content will be:
+            3-columns-wide on large screens,
+            4-columns-wide on medium screens,
+            12-columns-wide on small screens  -->
+         <ul class="collection">
+            <li class="collection-item">Pesagem Inicial</li>
+            <li class="collection-item">Pesagem Final</li>
+            <li class="collection-item">Relatórios</li>
+            <li class="collection-item">Pesquisa</li>
+             <li class="collection-item">Cadastros</li>
+         </ul>
+
+         <h4 class=" center   ">Controle de Cancelas</h4>
+         <div class='col center s12'>
+           <!-- <label> Click para abrir cancelas</label> -->
+         </div>
+          <div class='col center s12'>
+
+          <button class='waves-effect waves-light btn teal darken-4 ' id= "botao_controle_cancelas_abrir" name='botao_controle_cancelas' > CONTROLE<i class='large material-icons right'>beenhere</i></button>
+          <div class="row center s4">
+         </div>
+           
+           
+         </div>
+
+
+         <div class="row center s4">
+         </div>
+         <div class="row center s4">
+          <img class="responsive-img materialboxed center"  width="310" src="img/logo4.jpg">
+         </div>
+      </div>
+      <!-- fim  menu lateral -->
+      <!-- inicio painel Controle de cancelas -->
+      <div class="col s10 m8 l9 card-panel ">
+         <!-- <h4 class=" center ">Controle de Cancelas</h4>  -->
+         <!-- inicio pagina central?-->
+         <div>
+            <!-- inicio lateral semaforos e sensores?-->
+            <div class="row">
+               <!-- coluna com os sensores?-->
+               <div class="col s8 m8 l8">
+                  <!-- INICIO DA LINHA QUE CONTEM SEMAFORO EXTERNO A SENSOR DE APROXIMAÇÃO A  LEITURA DE PESO E CONTROLE DE CANCELAS -->
+                  <div class='col s2'>
+                     <label for='botao_semafaro_externo_A'>Entrada A <br> </label>
+                     <label for='botao_semafaro_externo_A'>Semáforo externo</label>
+                     <button class='waves-effect waves-light btn black ' id="botao_semafaro_externo_A" name='botao_semafaro_externo_A' ><i class='material-icons'>highlight</i></button>
+                  </div>
+                  <div class="row">
+                     <div class='col s3 input-field'>
+                        <input class='black-text  ' disabled id='sensor_aproximacao_A' type='text' name='sensor_aproximacao_A' value= 'BLOQUEADO' >
+                        <label for='sensor_aproximacao_A'>Sensor aproximoção</label>
+
+                      
+
+
+
+
+                     </div>
+                     <div class='col s3 input-field'>
+                        <input style='font-size: 20px' class='black-text ' disabled id='leiturapeso' type='text' name='leiturapeso' value="Calculando">
+                        <label for='leiturapeso'>Peso</label>
+                     </div>
+                  </div>
+                  <div class="row">
+                     <div class='col s2'>
+                        <label for='botao_semafaro_interno_A'>Semáforo interno</label>
+                        <button  class='waves-effect waves-light btn black' id="botao_semafaro_interno_A" name='botao_semafaro_interno_A' ><i class='material-icons '>highlight_off</i></button>
+                     </div>
+                     <div class='col s3 input-field'>
+                        <input class='black-text' disabled id='sensor_seguranca_A' type='text' name='sensor_seguranca_A' value='BLOQUEADO' >
+                        <label for='sensor_seguranca_A'>Sensor de Segurança</label>
+
+                     </div>
+                     <div class="row">
+                        <div class="col input-field s3 ">
+                           <input style='font-size: 40px' id="bruto" type="number" name="bruto" >
+                           <label for='bruto'>Peso Bruto</label>
+                        </div>
+                     </div>
+                  </div>
+                  <div class="row">
+                     <div class='col s3 offset-s2 input-field'>
+
+                        <input class='black-text' disabled id = 'estabilidade' type='text' name='estabilidade' value = 'ESTÁVEL'>
+                        <label for='estabilidade'>Plataforma</label>
+
+                     </div>
+
+                     <div class="col input-field s3">
+                        <input style='font-size: 40px' id="tara" type="number" name="tara"  >
+                        <label for='tara'>Tara</label>
+                     </div>
+                  </div>
+                  <div class="row">
+                     <div class='col s2'>
+                        <label for='botao_semafaro_interno_B'>Semáforo interno</label>
+                        <button  class=' waves-effect waves-light btn black ' id= "botao_semafaro_interno_B" name='botao_semafaro_interno_B' ><i class='material-icons '>highlight_off</i></button>
+                     </div>
+                     <div class='col s3 input-field'>
+                        <input class='black-text' disabled id='sensor_seguranca_B' type='text' name='sensor_seguranca_B' value='BLOQUEADO' >
+                        <label for='sensor_seguranca_B'>Sensor de Segurança</label>
+                     </div>
+                     <div class="col input-field s3">
+                        <input style='font-size: 40px' disabled id="liquido" type="number" name="liquido" >
+                        <label for='liquido'>Peso Líquido</label>
+                     </div>
+                  </div>
+                  <div class="row">
+                     <div class='col s2'>
+                       <label for='botao_semafaro_externo_B'>Semáforo externo</label>
+                        <button id= "botao_semafaro_externo_B" class='waves-effect waves-light btn black' id="botao_semafaro_externo_B" name='botao_semafaro_externo_B' ><i class='material-icons '>highlight</i></button>
+                        <label for='botao_semafaro_externo_B'>Entrada B <br> </label>
+                     </div>
+                     <div class='col s3 input-field'>
+                        <input class='black-text' disabled id='sensor_aproximacao_B' type='text' name='sensor_aproximacao_B' value='BLOQUEADO' >
+                        <label for='sensor_aproximacao_B'>Sensor aproximoção</label>
+                     </div>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>
+      <footer class="page-footer teal darken-1">
+         <div class="container">
+            <div class="row">
+               <div class="col l6 s12">
+                  <h5 class="white-text">BALANÇAS RIO VERDE</h5>
+                  <p class="grey-text text-lighten-4">Uma parceria de peso.</p>
+               </div>
+               <div class="col l4 offset-l2 s12">
+                  <h5 class="white-text">Links</h5>
+               </div>
+            </div>
+         </div>
+         <div class="footer-copyright">
+            <div class="container">
+               © 2017 TODOS OS DIREITOS RESERVADOS
+               <a class="grey-text text-lighten-4 right" href="#!">Link do futuro site da empresa</a>
+            </div>
+         </div>
+      </footer>
+   </body>
+</html>
+
