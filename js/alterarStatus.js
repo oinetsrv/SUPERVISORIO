@@ -131,14 +131,16 @@ document.getElementById("sensor_seguranca_B").value ="LIVRE";
 
 if (objeto.CA_A === 0){
 
- $('#botao_controle_cancelas_abrir').removeClass(' teal darken-4');
+  $('#botao_controle_cancelas_abrir').removeClass(' teal darken-4');
   $('#botao_controle_cancelas_abrir').addClass('red accent-4 ');
+  
 
 } 
 if (objeto.CA_A === 1){
 
  $('#botao_controle_cancelas_abrir').removeClass(' red accent-4');
   $('#botao_controle_cancelas_abrir').addClass('teal darken-4 ');
+  
 
 } 
 
